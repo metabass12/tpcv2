@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TPC Calculator - Storm Mode</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+            color: #e0f7fa;
+            padding: 40px;
+            background-image: url('https://www.transparenttextures.com/patterns/dark-mosaic.png');
+        }
+
+        h1 {
+            background-color: #000;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+        
+            text-align: center;
+            color: #00e5ff;
+            text-shadow: 0 0 8px #00e5ff;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background-color: #121212;
+            border: 1px solid #00e5ff33;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            background-color: #1e1e1e;
+            border: 1px solid #00e5ff55;
+            color: #e0f7fa;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: #00e5ff;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            box-shadow: 0 0 10px #00e5ff88;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        button:hover {
+            background-color: #00bcd4;
+            box-shadow: 0 0 20px #00e5ff;
+            cursor: pointer;
+        }
+
+        #result {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00ffc3;
+            text-shadow: 0 0 10px #00ffc3;
+        }
+    </style>
+</head>
+<body>
+    <h1>TPC Calculator</h1>
+    
+    <div style="display: flex; gap: 20px; justify-content: center;">
+        <div class="container" style="flex: 1;">
+    
+        <label for="cape3k">3CAPE (J/kg):</label>
+        <input type="number" id="cape3k">
+
+        <label for="mlcape">MLCAPE (J/kg):</label>
+        <input type="number" id="mlcape">
+
+        <label for="lls">LLS (knots):</label>
+        <input type="number" id="lls">
+
+        <label for="esrh">ESRH (m²/s²):</label>
+        <input type="number" id="esrh">
+
+        <label for="lllrs">LLLRS (°C/km):</label>
+        <input type="number" id="lllrs">
+
+        <label for="cinh">CINH (J/kg):</label>
+        <input type="number" id="cinh">
+
+        <label for="stormMode">Storm Mode:</label>
+        <select id="stormMode">
+            <option value="1.2">Discrete</option>
+            <option value="1.0">Semi-discrete</option>
+            <option value="0.9" selected>Linear</option>
+        </select>
+
+        <button onclick="calculateTPC()">⚡ Calculate TPC</button>
+
+        </div><div style="flex: 0.6; background-color: #1b1b1b; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #00e5ff55; font-size: 0.9em;"><h3 style="color:#00e5ff;">TPC Scale</h3><ul style="list-style: none; padding-left: 0; line-height: 1.6;"><li><strong>≥ 110</strong>: 45%</li><li><strong>100–109</strong>: 30%</li><li><strong>90–99</strong>: 30%</li><li><strong>80–89</strong>: 15%</li><li><strong>70–79</strong>: 15%</li><li><strong>60–69</strong>: 10%</li><li><strong>50–59</strong>: 10%</li><li><strong>40–49</strong>: 5%</li><li><strong>30–39</strong>: 2%</li><li><strong>20–29</strong>: 2%</li><li><strong>&lt; 20</strong>: 0%</li></ul><div id="result">TPC Score: </div>
+    </div>
+
+    <script>
+        function calculateTPC() {
+            const cape3k = parseFloat(document.getElementById('cape3k').value) / 2.5;
+            const mlcape = parseFloat(document.getElementById('mlcape').value) / 30;
+            const lls = parseFloat(document.getElementById('lls').value) * 1.4;
+            const esrh = parseFloat(document.getElementById('esrh').value) / 3.8;
+            const lllrs_input = parseFloat(document.getElementById('lllrs').value);
+            const cinh_input = parseFloat(document.getElementById('cinh').value);
+            const storm_mode = parseFloat(document.getElementById('stormMode').value);
+
+            if (isNaN(cape3k) || isNaN(mlcape) || isNaN(lls) || isNaN(esrh) || isNaN(lllrs_input) || isNaN(cinh_input)) {
+                alert("Please fill in all fields with valid numbers.");
+                return;
+            }
+
+            const lllrs = ((lllrs_input - 5) / (8 - 5)) * (100 - 1) + 1;
+            const cinh = (((cinh_input + 125) / 125) * 100) - 100;
+
+            
+            const raw_score = (cape3k + mlcape + lls + esrh + lllrs - cinh) * storm_mode;
+            const final_score = raw_score / 6;
+    
+
+            
+    const fullScore = raw_score;
+    let probability = "0%";
+    if (fullScore >= 110) {
+        probability = "45%";
+    } else if (fullScore >= 100) {
+        probability = "30%";
+    } else if (fullScore >= 90) {
+        probability = "30%";
+    } else if (fullScore >= 80) {
+        probability = "15%";
+    } else if (fullScore >= 70) {
+        probability = "15%";
+    } else if (fullScore >= 60) {
+        probability = "10%";
+    } else if (fullScore >= 50) {
+        probability = "10%";
+    } else if (fullScore >= 40) {
+        probability = "5%";
+    } else if (fullScore >= 30) {
+        probability = "2%";
+    } else if (fullScore >= 20) {
+        probability = "2%";
+    }
+    document.getElementById('result').innerHTML = "TPC Score: " + final_score.toFixed(2) +
+        "";
+    
+        }
+    </script>
+
+    <div style="margin-top: 40px; background-color: #000; padding: 10px; text-align: center; border-radius: 8px;"><p style="font-size: 0.85em; color: #ccc; margin: 0; font-style: italic;">
+        (for best accuracy use RAP sounding data)
+    </p><p style="font-size: 0.75em; color: #888; margin-top: 8px;">(unauthorized public use of this tool without credit is illegal and will be prosecuted based on state, federal, local laws)</p></div>
+    </body>
+    
+</html>
